@@ -9,6 +9,8 @@ import Properties from "./pages/Properties";
 import Agents from "./pages/Agents";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import AgentAuth from "./pages/AgentAuth";
+import AgentDashboard from "./pages/AgentDashboard";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,8 @@ const App = () => (
             <Route path="/agents" element={<Agents />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/agent-auth" element={<AgentAuth />} />
+            <Route path="/agent-dashboard" element={<AgentDashboard />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
