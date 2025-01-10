@@ -1,4 +1,5 @@
 import { Mail, Phone, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Footer = () => {
   return (
@@ -6,19 +7,19 @@ export const Footer = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-2xl font-bold mb-4">Home<span className="text-primary">space</span></h3>
+            <h3 className="text-2xl font-bold mb-4">Se<span className="text-primary">ler</span></h3>
             <p className="text-gray-300">
-              Your trusted partner in finding the perfect property. We make real estate simple and accessible.
+              Your trusted partner in finding the perfect property in Nigeria. We make real estate simple and accessible.
             </p>
           </div>
           
           <div>
             <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-primary transition-colors">About Us</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-primary transition-colors">Properties</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-primary transition-colors">Agents</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-primary transition-colors">Blog</a></li>
+              <li><Link to="/about" className="text-gray-300 hover:text-primary transition-colors">About Us</Link></li>
+              <li><Link to="/properties" className="text-gray-300 hover:text-primary transition-colors">Properties</Link></li>
+              <li><Link to="/agents" className="text-gray-300 hover:text-primary transition-colors">Agents</Link></li>
+              <li><Link to="/contact" className="text-gray-300 hover:text-primary transition-colors">Contact</Link></li>
             </ul>
           </div>
           
@@ -27,15 +28,15 @@ export const Footer = () => {
             <ul className="space-y-4">
               <li className="flex items-center">
                 <MapPin className="h-5 w-5 mr-2 text-primary" />
-                <span>123 Real Estate Ave, CA 90210</span>
+                <span>123 Victoria Island, Lagos, Nigeria</span>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 mr-2 text-primary" />
-                <span>+1 234 567 8900</span>
+                <span>+234 801 234 5678</span>
               </li>
               <li className="flex items-center">
                 <Mail className="h-5 w-5 mr-2 text-primary" />
-                <span>info@homespace.com</span>
+                <span>info@seler.com</span>
               </li>
             </ul>
           </div>
@@ -57,7 +58,7 @@ export const Footer = () => {
         </div>
         
         <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-300">
-          <p>&copy; 2024 Homespace. All rights reserved.</p>
+          <p>&copy; 2024 Seler. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -5,9 +5,9 @@ import { Bed, Bath, Square } from "lucide-react";
 const properties = [
   {
     id: 1,
-    title: "Modern Villa in Beverly Hills",
-    price: "$2,500,000",
-    location: "Beverly Hills, CA",
+    title: "Modern Villa in Lekki",
+    price: "₦250,000,000",
+    location: "Lekki Phase 1, Lagos",
     image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?ixlib=rb-4.0.1",
     beds: 5,
     baths: 4,
@@ -16,8 +16,8 @@ const properties = [
   {
     id: 2,
     title: "Luxury Apartment with Ocean View",
-    price: "$1,800,000",
-    location: "Miami Beach, FL",
+    price: "₦180,000,000",
+    location: "Victoria Island, Lagos",
     image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.1",
     beds: 3,
     baths: 2,
@@ -26,8 +26,8 @@ const properties = [
   {
     id: 3,
     title: "Contemporary Downtown Loft",
-    price: "$950,000",
-    location: "New York, NY",
+    price: "₦95,000,000",
+    location: "Ikoyi, Lagos",
     image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?ixlib=rb-4.0.1",
     beds: 2,
     baths: 2,
