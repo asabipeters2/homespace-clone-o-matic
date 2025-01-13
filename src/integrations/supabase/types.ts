@@ -9,7 +9,151 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          agent_id: string | null
+          appointment_date: string | null
+          client_id: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          property_id: string | null
+          status: string | null
+          type: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          appointment_date?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          property_id?: string | null
+          status?: string | null
+          type?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          appointment_date?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          property_id?: string | null
+          status?: string | null
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      properties: {
+        Row: {
+          agent_id: string | null
+          bathrooms: number | null
+          bedrooms: number | null
+          coordinates: unknown | null
+          created_at: string | null
+          description: string | null
+          features: Json | null
+          id: string
+          listing_type: string
+          location: string
+          price: number
+          property_type: string
+          square_footage: number | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          virtual_tour_url: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          coordinates?: unknown | null
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          listing_type: string
+          location: string
+          price: number
+          property_type: string
+          square_footage?: number | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          virtual_tour_url?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          coordinates?: unknown | null
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          listing_type?: string
+          location?: string
+          price?: number
+          property_type?: string
+          square_footage?: number | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          virtual_tour_url?: string | null
+        }
+        Relationships: []
+      }
+      property_analytics: {
+        Row: {
+          favorite_count: number | null
+          id: string
+          inquiry_count: number | null
+          last_viewed_at: string | null
+          market_comparison: Json | null
+          price_history: Json | null
+          property_id: string | null
+          views_count: number | null
+        }
+        Insert: {
+          favorite_count?: number | null
+          id?: string
+          inquiry_count?: number | null
+          last_viewed_at?: string | null
+          market_comparison?: Json | null
+          price_history?: Json | null
+          property_id?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          favorite_count?: number | null
+          id?: string
+          inquiry_count?: number | null
+          last_viewed_at?: string | null
+          market_comparison?: Json | null
+          price_history?: Json | null
+          property_id?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_analytics_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
