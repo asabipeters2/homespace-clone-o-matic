@@ -4,7 +4,7 @@ export interface Property {
   description?: string;
   price: number;
   location: string;
-  coordinates?: string;
+  coordinates?: unknown;  // Updated to match database type
   property_type: string;
   listing_type: string;
   bedrooms?: number;

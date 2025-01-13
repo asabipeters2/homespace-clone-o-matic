@@ -14,7 +14,7 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    mapboxgl.accessToken = process.env.MAPBOX_PUBLIC_TOKEN || "";
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || "";
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -41,7 +41,7 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
           .setLngLat([parseFloat(coordinates[0]), parseFloat(coordinates[1])])
           .setPopup(
             new mapboxgl.Popup({ offset: 25 }).setHTML(
-              `<h3>${property.title}</h3><p>${property.price}</p>`
+              `<h3>${property.title}</h3><p>$${property.price.toLocaleString()}</p>`
             )
           )
           .addTo(map.current);
