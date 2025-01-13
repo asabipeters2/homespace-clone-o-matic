@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Property } from "@/types";
@@ -9,43 +9,57 @@ interface PropertyMapProps {
 
 export const PropertyMap = ({ properties }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<maplibregl.Map | null>(null);
-  const markers = useRef<maplibregl.Marker[]>([]);
+  const mapRef = useRef<maplibregl.Map | null>(null);
+  const markersRef = useRef<maplibregl.Marker[]>([]);
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || mapRef.current) return;
 
     const apiKey = import.meta.env.VITE_MAPTILER_API_KEY || "";
 
-    const initMap = new maplibregl.Map({
-      container: mapContainer.current,
-      style: `https://api.maptiler.com/maps/streets/style.json?key=${apiKey}`,
-      center: [-74.5, 40],
-      zoom: 9,
-    });
+    const initializeMap = () => {
+      try {
+        const map = new maplibregl.Map({
+          container: mapContainer.current!,
+          style: `https://api.maptiler.com/maps/streets/style.json?key=${apiKey}`,
+          center: [-74.5, 40],
+          zoom: 9,
+        });
 
-    initMap.addControl(new maplibregl.NavigationControl(), "top-right");
-    
-    // Wait for map to load before setting it
-    initMap.on('load', () => {
-      setMap(initMap);
-    });
+        map.addControl(new maplibregl.NavigationControl(), "top-right");
+        
+        map.on('load', () => {
+          mapRef.current = map;
+          // Update markers after map is loaded
+          updateMarkers();
+        });
+      } catch (error) {
+        console.error('Error initializing map:', error);
+      }
+    };
+
+    initializeMap();
 
     return () => {
-      markers.current.forEach(marker => marker.remove());
-      markers.current = [];
-      initMap.remove();
+      if (markersRef.current.length) {
+        markersRef.current.forEach(marker => marker.remove());
+        markersRef.current = [];
+      }
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
   }, []);
 
-  // Handle markers separately after map is initialized
-  useEffect(() => {
-    if (!map) return;
+  // Update markers function
+  const updateMarkers = () => {
+    if (!mapRef.current) return;
 
     // Clear existing markers
-    markers.current.forEach(marker => marker.remove());
-    markers.current = [];
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
 
     // Add new markers
     properties.forEach((property) => {
@@ -69,20 +83,21 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
               `<h3>${property.title}</h3><p>$${property.price.toLocaleString()}</p>`
             )
           )
-          .addTo(map);
+          .addTo(mapRef.current);
 
-        markers.current.push(marker);
+        markersRef.current.push(marker);
       } catch (error) {
         console.error('Error adding marker:', error);
       }
     });
+  };
 
-    // Cleanup markers when properties change
-    return () => {
-      markers.current.forEach(marker => marker.remove());
-      markers.current = [];
-    };
-  }, [map, properties]);
+  // Update markers when properties change
+  useEffect(() => {
+    if (mapRef.current) {
+      updateMarkers();
+    }
+  }, [properties]);
 
   return <div ref={mapContainer} className="w-full h-full" />;
 };
