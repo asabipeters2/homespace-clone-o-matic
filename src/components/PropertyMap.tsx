@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Property } from "@/types";
@@ -9,52 +9,51 @@ interface PropertyMapProps {
 
 export const PropertyMap = ({ properties }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const markersRef = useRef<maplibregl.Marker[]>([]);
+  const [map, setMap] = useState<maplibregl.Map | null>(null);
+  const markers = useRef<maplibregl.Marker[]>([]);
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainer.current || mapRef.current) return;
+    if (!mapContainer.current) return;
 
     const apiKey = import.meta.env.VITE_MAPTILER_API_KEY || "";
 
-    const map = new maplibregl.Map({
+    const initMap = new maplibregl.Map({
       container: mapContainer.current,
       style: `https://api.maptiler.com/maps/streets/style.json?key=${apiKey}`,
       center: [-74.5, 40],
       zoom: 9,
     });
 
-    map.addControl(new maplibregl.NavigationControl(), "top-right");
-    mapRef.current = map;
+    initMap.addControl(new maplibregl.NavigationControl(), "top-right");
+    
+    // Wait for map to load before setting it
+    initMap.on('load', () => {
+      setMap(initMap);
+    });
 
-    // Cleanup function
     return () => {
-      if (markersRef.current.length) {
-        markersRef.current.forEach(marker => marker.remove());
-        markersRef.current = [];
-      }
-      map.remove();
-      mapRef.current = null;
+      markers.current.forEach(marker => marker.remove());
+      markers.current = [];
+      initMap.remove();
     };
-  }, []); // Empty dependency array ensures map is initialized only once
+  }, []);
 
-  // Handle markers
+  // Handle markers separately after map is initialized
   useEffect(() => {
-    const map = mapRef.current;
     if (!map) return;
 
     // Clear existing markers
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
+    markers.current.forEach(marker => marker.remove());
+    markers.current = [];
 
     // Add new markers
     properties.forEach((property) => {
       if (!property.coordinates) return;
 
       try {
-        const coordinates = property.coordinates.toString().split(",").map(Number);
-        if (coordinates.length !== 2 || coordinates.some(isNaN)) return;
+        const coords = property.coordinates.toString().split(",").map(Number);
+        if (coords.length !== 2 || coords.some(isNaN)) return;
 
         const el = document.createElement("div");
         el.className = "marker";
@@ -64,7 +63,7 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
         el.style.backgroundSize = "cover";
 
         const marker = new maplibregl.Marker(el)
-          .setLngLat([coordinates[0], coordinates[1]])
+          .setLngLat([coords[0], coords[1]])
           .setPopup(
             new maplibregl.Popup({ offset: 25 }).setHTML(
               `<h3>${property.title}</h3><p>$${property.price.toLocaleString()}</p>`
@@ -72,12 +71,18 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
           )
           .addTo(map);
 
-        markersRef.current.push(marker);
+        markers.current.push(marker);
       } catch (error) {
         console.error('Error adding marker:', error);
       }
     });
-  }, [properties]); // Only re-run when properties change
+
+    // Cleanup markers when properties change
+    return () => {
+      markers.current.forEach(marker => marker.remove());
+      markers.current = [];
+    };
+  }, [map, properties]);
 
   return <div ref={mapContainer} className="w-full h-full" />;
 };
