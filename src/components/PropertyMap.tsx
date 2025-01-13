@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Property } from "@/types";
@@ -9,31 +9,40 @@ interface PropertyMapProps {
 
 export const PropertyMap = ({ properties }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
+  const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
 
+  // Initialize map
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || mapInstance) return;
 
     const apiKey = import.meta.env.VITE_MAPTILER_API_KEY || "";
-    let currentMarkers: maplibregl.Marker[] = [];
-
     const map = new maplibregl.Map({
       container: mapContainer.current,
       style: `https://api.maptiler.com/maps/basic/style.json?key=${apiKey}`,
       center: [-74.5, 40],
-      zoom: 9,
-      maxZoom: 17,
-      minZoom: 4
+      zoom: 9
     });
 
     map.on('load', () => {
-      // Clear any existing markers
-      currentMarkers.forEach(marker => marker.remove());
-      currentMarkers = [];
+      setMapInstance(map);
+    });
 
-      // Add markers for properties
-      properties.forEach((property) => {
-        if (!property.coordinates) return;
+    return () => {
+      map.remove();
+      setMapInstance(null);
+    };
+  }, []);
 
+  // Handle markers separately
+  useEffect(() => {
+    if (!mapInstance) return;
+
+    const markers: maplibregl.Marker[] = [];
+
+    properties.forEach((property) => {
+      if (!property.coordinates) return;
+
+      try {
         const coordString = property.coordinates.toString();
         const coords = coordString.split(",").map(Number);
         if (coords.length !== 2 || coords.some(isNaN)) return;
@@ -51,23 +60,18 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
             new maplibregl.Popup({ closeButton: false })
               .setHTML(`<p class="font-bold">${property.title}</p>`)
           )
-          .addTo(map);
+          .addTo(mapInstance);
 
-        currentMarkers.push(marker);
-      });
-
-      map.addControl(
-        new maplibregl.NavigationControl({ showCompass: false }), 
-        "top-right"
-      );
+        markers.push(marker);
+      } catch (error) {
+        console.error("Error adding marker:", error);
+      }
     });
 
-    // Cleanup function
     return () => {
-      currentMarkers.forEach(marker => marker.remove());
-      map.remove();
+      markers.forEach(marker => marker.remove());
     };
-  }, [properties]); // Only re-run if properties change
+  }, [properties, mapInstance]);
 
   return (
     <div className="w-full h-[200px] rounded-md overflow-hidden shadow-sm">
