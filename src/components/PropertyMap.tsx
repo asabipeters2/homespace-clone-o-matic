@@ -10,6 +10,7 @@ interface PropertyMapProps {
 export const PropertyMap = ({ properties }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
+  const markersRef = useRef<maplibregl.Marker[]>([]);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -26,7 +27,25 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
     // Add navigation controls
     map.current.addControl(new maplibregl.NavigationControl(), "top-right");
 
-    // Add markers for properties
+    // Cleanup function
+    return () => {
+      // Remove all markers
+      markersRef.current.forEach(marker => marker.remove());
+      markersRef.current = [];
+      // Remove map
+      map.current?.remove();
+    };
+  }, []); // Empty dependency array for initial map setup
+
+  // Separate effect for handling markers
+  useEffect(() => {
+    if (!map.current) return;
+
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+
+    // Add new markers
     properties.forEach((property) => {
       if (property.coordinates) {
         const coordinates = property.coordinates.toString().split(",");
@@ -37,7 +56,7 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
         el.style.height = "32px";
         el.style.backgroundSize = "cover";
 
-        new maplibregl.Marker(el)
+        const marker = new maplibregl.Marker(el)
           .setLngLat([parseFloat(coordinates[0]), parseFloat(coordinates[1])])
           .setPopup(
             new maplibregl.Popup({ offset: 25 }).setHTML(
@@ -45,13 +64,11 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
             )
           )
           .addTo(map.current);
+
+        markersRef.current.push(marker);
       }
     });
-
-    return () => {
-      map.current?.remove();
-    };
-  }, [properties]);
+  }, [properties]); // Re-run when properties change
 
   return <div ref={mapContainer} className="w-full h-full" />;
 };
