@@ -10,10 +10,13 @@ export interface Property {
   bedrooms?: number;
   bathrooms?: number;
   square_footage?: number;
-  features?: Record<string, any>;
+  features?: Json;  // Updated to match database type
   virtual_tour_url?: string;
   status: string;
   agent_id: string;
   created_at?: string;
   updated_at?: string;
 }
+
+// Add Json type to match Supabase's Json type
+type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
