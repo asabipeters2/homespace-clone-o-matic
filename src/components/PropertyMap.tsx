@@ -16,51 +16,53 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
 
     const apiKey = import.meta.env.VITE_MAPTILER_API_KEY || "";
 
-    map.current = new maplibregl.Map({
+    const initMap = new maplibregl.Map({
       container: mapContainer.current,
       style: `https://api.maptiler.com/maps/streets/style.json?key=${apiKey}`,
       center: [-74.5, 40],
       zoom: 9,
     });
 
-    map.current.addControl(new maplibregl.NavigationControl(), "top-right");
+    initMap.on('load', () => {
+      map.current = initMap;
+      
+      // Add navigation controls after map is loaded
+      map.current.addControl(new maplibregl.NavigationControl(), "top-right");
 
-    const markers: maplibregl.Marker[] = [];
+      // Add markers after map is loaded
+      properties.forEach((property) => {
+        if (!property.coordinates) return;
 
-    properties.forEach((property) => {
-      if (!property.coordinates) return;
+        const coords = property.coordinates.toString().split(",").map(Number);
+        if (coords.length !== 2 || coords.some(isNaN)) return;
 
-      const coords = property.coordinates.toString().split(",").map(Number);
-      if (coords.length !== 2 || coords.some(isNaN)) return;
+        const el = document.createElement("div");
+        el.className = "marker";
+        el.style.backgroundColor = "#00C194";
+        el.style.width = "12px";
+        el.style.height = "12px";
+        el.style.borderRadius = "50%";
+        el.style.border = "2px solid white";
 
-      const el = document.createElement("div");
-      el.className = "marker";
-      el.style.backgroundImage = "url(/marker.png)";
-      el.style.width = "24px";
-      el.style.height = "24px";
-      el.style.backgroundSize = "cover";
-
-      const marker = new maplibregl.Marker(el)
-        .setLngLat([coords[0], coords[1]])
-        .setPopup(
-          new maplibregl.Popup({ offset: 25 }).setHTML(
-            `<h3>${property.title}</h3><p>$${property.price.toLocaleString()}</p>`
+        new maplibregl.Marker(el)
+          .setLngLat([coords[0], coords[1]])
+          .setPopup(
+            new maplibregl.Popup({ offset: 25 }).setHTML(
+              `<h3 style="font-weight: bold;">${property.title}</h3><p>$${property.price.toLocaleString()}</p>`
+            )
           )
-        )
-        .addTo(map.current);
-
-      markers.push(marker);
+          .addTo(map.current);
+      });
     });
 
     return () => {
-      markers.forEach(marker => marker.remove());
       map.current?.remove();
       map.current = null;
     };
   }, [properties]);
 
   return (
-    <div className="w-full h-[400px] rounded-lg overflow-hidden shadow-lg">
+    <div className="w-full h-[300px] rounded-lg overflow-hidden shadow-md">
       <div ref={mapContainer} className="w-full h-full" />
     </div>
   );
