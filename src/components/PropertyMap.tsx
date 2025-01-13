@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { Property } from "@/types";
 
 interface PropertyMapProps {
@@ -9,22 +9,22 @@ interface PropertyMapProps {
 
 export const PropertyMap = ({ properties }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  const map = useRef<maplibregl.Map | null>(null);
 
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || "";
+    const apiKey = import.meta.env.VITE_MAPTILER_API_KEY || "";
 
-    map.current = new mapboxgl.Map({
+    map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/light-v11",
+      style: `https://api.maptiler.com/maps/streets/style.json?key=${apiKey}`,
       center: [-74.5, 40],
       zoom: 9,
     });
 
     // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+    map.current.addControl(new maplibregl.NavigationControl(), "top-right");
 
     // Add markers for properties
     properties.forEach((property) => {
@@ -37,10 +37,10 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
         el.style.height = "32px";
         el.style.backgroundSize = "cover";
 
-        new mapboxgl.Marker(el)
+        new maplibregl.Marker(el)
           .setLngLat([parseFloat(coordinates[0]), parseFloat(coordinates[1])])
           .setPopup(
-            new mapboxgl.Popup({ offset: 25 }).setHTML(
+            new maplibregl.Popup({ offset: 25 }).setHTML(
               `<h3>${property.title}</h3><p>$${property.price.toLocaleString()}</p>`
             )
           )
