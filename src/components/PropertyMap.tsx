@@ -10,32 +10,29 @@ interface PropertyMapProps {
 export const PropertyMap = ({ properties }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const markersRef = useRef<maplibregl.Marker[]>([]);
 
   useEffect(() => {
     if (!mapContainer.current) return;
 
     const apiKey = import.meta.env.VITE_MAPTILER_API_KEY || "";
+    const markers: maplibregl.Marker[] = [];
     
-    const initializeMap = () => {
-      if (!map.current) {
-        map.current = new maplibregl.Map({
-          container: mapContainer.current!,
-          style: `https://api.maptiler.com/maps/basic/style.json?key=${apiKey}`,
-          center: [-74.5, 40],
-          zoom: 9
-        });
-      }
-    };
-
-    const clearMarkers = () => {
-      markersRef.current.forEach(marker => marker.remove());
-      markersRef.current = [];
-    };
+    // Initialize map only if it doesn't exist
+    if (!map.current) {
+      map.current = new maplibregl.Map({
+        container: mapContainer.current,
+        style: `https://api.maptiler.com/maps/basic/style.json?key=${apiKey}`,
+        center: [-74.5, 40],
+        zoom: 9
+      });
+    }
 
     const addMarkers = () => {
-      clearMarkers();
-      
+      // Clear existing markers
+      markers.forEach(marker => marker.remove());
+      markers.length = 0;
+
+      // Add new markers
       properties.forEach((property) => {
         if (!property.coordinates) return;
 
@@ -59,23 +56,27 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
             )
             .addTo(map.current!);
 
-          markersRef.current.push(marker);
+          markers.push(marker);
         } catch (error) {
           console.error("Error adding marker:", error);
         }
       });
     };
 
-    initializeMap();
-
+    // Add markers when map is loaded
     if (map.current.loaded()) {
       addMarkers();
     } else {
-      map.current.once('load', addMarkers);
+      const loadHandler = () => {
+        addMarkers();
+        map.current?.off('load', loadHandler);
+      };
+      map.current.on('load', loadHandler);
     }
 
+    // Cleanup function
     return () => {
-      clearMarkers();
+      markers.forEach(marker => marker.remove());
       if (map.current) {
         map.current.remove();
         map.current = null;
