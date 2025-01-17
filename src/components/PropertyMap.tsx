@@ -15,9 +15,8 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
     if (!mapContainer.current) return;
 
     const apiKey = import.meta.env.VITE_MAPTILER_API_KEY || "";
-    const markers: maplibregl.Marker[] = [];
     
-    // Initialize map only if it doesn't exist
+    // Initialize map
     if (!map.current) {
       map.current = new maplibregl.Map({
         container: mapContainer.current,
@@ -27,10 +26,15 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
       });
     }
 
-    const addMarkers = () => {
-      // Clear existing markers
-      markers.forEach(marker => marker.remove());
-      markers.length = 0;
+    // Store markers locally
+    const markers: maplibregl.Marker[] = [];
+
+    // Function to add markers
+    const addMarkersToMap = () => {
+      // Remove existing markers
+      while (markers.length) {
+        markers.pop()?.remove();
+      }
 
       // Add new markers
       properties.forEach((property) => {
@@ -39,23 +43,24 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
         try {
           const coordString = property.coordinates.toString();
           const coords = coordString.split(",").map(Number);
+          
           if (coords.length !== 2 || coords.some(isNaN)) return;
 
-          const dot = document.createElement("div");
-          dot.style.width = "10px";
-          dot.style.height = "10px";
-          dot.style.backgroundColor = "#FF4444";
-          dot.style.borderRadius = "50%";
-          dot.style.border = "2px solid white";
+          const markerElement = document.createElement("div");
+          markerElement.style.width = "10px";
+          markerElement.style.height = "10px";
+          markerElement.style.backgroundColor = "#FF4444";
+          markerElement.style.borderRadius = "50%";
+          markerElement.style.border = "2px solid white";
 
-          const marker = new maplibregl.Marker(dot)
+          const marker = new maplibregl.Marker(markerElement)
             .setLngLat([coords[0], coords[1]])
             .setPopup(
               new maplibregl.Popup({ closeButton: false })
                 .setHTML(`<p class="font-bold">${property.title}</p>`)
-            )
-            .addTo(map.current!);
+            );
 
+          marker.addTo(map.current!);
           markers.push(marker);
         } catch (error) {
           console.error("Error adding marker:", error);
@@ -65,18 +70,19 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
 
     // Add markers when map is loaded
     if (map.current.loaded()) {
-      addMarkers();
+      addMarkersToMap();
     } else {
-      const loadHandler = () => {
-        addMarkers();
-        map.current?.off('load', loadHandler);
-      };
-      map.current.on('load', loadHandler);
+      map.current.once('load', addMarkersToMap);
     }
 
     // Cleanup function
     return () => {
-      markers.forEach(marker => marker.remove());
+      // Remove all markers
+      while (markers.length) {
+        markers.pop()?.remove();
+      }
+      
+      // Remove map instance
       if (map.current) {
         map.current.remove();
         map.current = null;
