@@ -10,26 +10,32 @@ interface PropertyMapProps {
 export const PropertyMap = ({ properties }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
+  const markersRef = useRef<maplibregl.Marker[]>([]);
 
   useEffect(() => {
     if (!mapContainer.current) return;
 
     const apiKey = import.meta.env.VITE_MAPTILER_API_KEY || "";
     
-    if (!map.current) {
-      map.current = new maplibregl.Map({
-        container: mapContainer.current,
-        style: `https://api.maptiler.com/maps/basic/style.json?key=${apiKey}`,
-        center: [-74.5, 40],
-        zoom: 9
-      });
-    }
+    const initializeMap = () => {
+      if (!map.current) {
+        map.current = new maplibregl.Map({
+          container: mapContainer.current!,
+          style: `https://api.maptiler.com/maps/basic/style.json?key=${apiKey}`,
+          center: [-74.5, 40],
+          zoom: 9
+        });
+      }
+    };
 
-    // Store markers in a local variable instead of state or ref
-    const markers: maplibregl.Marker[] = [];
+    const clearMarkers = () => {
+      markersRef.current.forEach(marker => marker.remove());
+      markersRef.current = [];
+    };
 
-    // Add markers once the map is loaded
     const addMarkers = () => {
+      clearMarkers();
+      
       properties.forEach((property) => {
         if (!property.coordinates) return;
 
@@ -53,23 +59,23 @@ export const PropertyMap = ({ properties }: PropertyMapProps) => {
             )
             .addTo(map.current!);
 
-          markers.push(marker);
+          markersRef.current.push(marker);
         } catch (error) {
           console.error("Error adding marker:", error);
         }
       });
     };
 
+    initializeMap();
+
     if (map.current.loaded()) {
       addMarkers();
     } else {
-      map.current.on('load', addMarkers);
+      map.current.once('load', addMarkers);
     }
 
-    // Cleanup function
     return () => {
-      markers.forEach(marker => marker.remove());
-      // Only remove the map when component unmounts
+      clearMarkers();
       if (map.current) {
         map.current.remove();
         map.current = null;
